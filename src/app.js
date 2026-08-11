@@ -18,7 +18,7 @@ const app = express()
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://smart-shop-prince.netlify.app'
+    'https://smart-shop-frontend.netlify.app'
   ],
   credentials: true
 }))
