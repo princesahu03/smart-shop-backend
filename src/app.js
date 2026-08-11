@@ -16,7 +16,10 @@ import supplierRoutes from './routes/supplier.routes.js'
 const app = express()
 
 app.use(cors({
-  origin: process.env.CORS_ORIGIN,
+  origin: [
+    'http://localhost:5173',
+    'https://smart-shop-prince.netlify.app'
+  ],
   credentials: true
 }))
 app.use(express.json({ limit: '16kb' }))
