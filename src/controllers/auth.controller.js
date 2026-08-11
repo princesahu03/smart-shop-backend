@@ -60,34 +60,38 @@ const registerUser = asyncHandler(async (req, res) => {
 
 // Login:
 const loginUser = asyncHandler(
-  async (req, res) => {const { email, password } = req.body
-
-    
+  async (req, res) => {
+    const { email, password } = req.body
 
     if (!email || !password) {
-      throw new ApiError(400, 
+      throw new ApiError(400,
         "Email and password required!")
     }
-    
 
     const user = await User.findOne({ email })
     if (!user) {
-      throw new ApiError(404, 
+      throw new ApiError(404,
         "User not found!")
     }
 
-    const isPasswordValid = 
+    const isPasswordValid =
       await user.isPasswordCorrect(password)
     if (!isPasswordValid) {
-      throw new ApiError(401, 
+      throw new ApiError(401,
         "Wrong password!")
     }
 
     const token = user.generateToken()
 
+    // ✅ Production fix:
+    const isProduction =
+      process.env.NODE_ENV === 'production'
+
     const options = {
       httpOnly: true,
-      secure: true
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000
     }
 
     return res
@@ -99,8 +103,11 @@ const loginUser = asyncHandler(
             _id: user._id,
             shopName: user.shopName,
             ownerName: user.ownerName,
-            email: user.email
-          },token}, "Login successful!")
+            email: user.email,
+            phone: user.phone
+          },
+          token // ✅ Token response mein bhi!
+        }, "Login successful!")
       )
   }
 )
@@ -108,12 +115,22 @@ const loginUser = asyncHandler(
 // Logout:
 const logoutUser = asyncHandler(
   async (req, res) => {
+
+    const isProduction =
+      process.env.NODE_ENV === 'production'
+
+    const options = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax'
+    }
+
     return res
       .status(200)
-      .clearCookie("token")
+      .clearCookie("token", options)
       .json(
         new ApiResponse(
-          200, {}, 
+          200, {},
           "Logout successful!"
         )
       )
