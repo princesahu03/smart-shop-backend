@@ -1,31 +1,56 @@
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
-import { errorHandler } from 
+import { errorHandler } from
   './middlewares/error.middleware.js'
 
-// Routes import:
 import authRoutes from './routes/auth.routes.js'
-import productRoutes from './routes/product.routes.js'
-import customerRoutes from './routes/customer.routes.js'
-import transactionRoutes from './routes/transaction.routes.js'
-import supplierRoutes from './routes/supplier.routes.js'
-
-
+import productRoutes from
+  './routes/product.routes.js'
+import customerRoutes from
+  './routes/customer.routes.js'
+import transactionRoutes from
+  './routes/transaction.routes.js'
+import supplierRoutes from
+  './routes/supplier.routes.js'
 
 const app = express()
 
+// ✅ CORS FIX:
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://smart-shop-frontend.netlify.app'
+]
+
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'https://smart-shop-frontend.netlify.app'
-  ],
-  credentials: true
+  origin: function(origin, callback) {
+    // Allow requests with no origin
+    // (mobile apps, postman, etc.)
+    if (!origin) return callback(null, true)
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT',
+    'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Cookie'
+  ]
 }))
+
+// Handle preflight:
+app.options('*', cors())
+
 app.use(express.json({ limit: '16kb' }))
-app.use(express.urlencoded({ 
-  extended: true, 
-  limit: '16kb' 
+app.use(express.urlencoded({
+  extended: true,
+  limit: '16kb'
 }))
 app.use(cookieParser())
 
